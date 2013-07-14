@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 var audience string
@@ -67,6 +68,7 @@ func (c Persona) Logout(redirect string) revel.Result {
 func (p *Persona) CheckUser() revel.Result {
 	var ok bool
 	var exp, email string
+	p.UserEmail = nil
 	if exp, ok = p.Session["persona/exp"]; !ok {
 		return nil
 	}
@@ -74,16 +76,16 @@ func (p *Persona) CheckUser() revel.Result {
 		return nil
 	}
 
-	if expms, err := strconv.ParseInt(exp, 36); err != nil {
+	if expms, err := strconv.ParseInt(exp, 36, 64); err != nil {
 		revel.ERROR.Fatal("Failed to parse expiration: %s", err)
 	} else {
 		expt := time.Unix(expms / 1000, (expms % 1000) * 1000000)
 		if expt.Before(time.Now()) {
-			p.Logout()
+			p.Logout("")
 			return nil
 		}
 	}
-	p.UserEmail = email
+	p.UserEmail = &email
 	return nil
 }
 
