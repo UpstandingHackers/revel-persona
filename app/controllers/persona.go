@@ -74,7 +74,7 @@ func (p *Persona) CheckUser() revel.Result {
 		return nil
 	}
 
-	if expms, err := strconv.ParseInt(exp); err != nil {
+	if expms, err := strconv.ParseInt(exp, 36); err != nil {
 		revel.ERROR.Fatal("Failed to parse expiration: %s", err)
 	} else {
 		expt := time.Unix(expms / 1000, (expms % 1000) * 1000000)
