@@ -25,6 +25,10 @@ type personaResponse struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+type personaRA struct {
+	Email string
+}
+
 type ErrorString string
 func (s ErrorString) Error() string {
 	return string(s)
@@ -65,7 +69,7 @@ func (c Persona) Logout(redirect string) revel.Result {
 	return c.RenderText("Logged out")
 }
 
-func (p *Persona) CheckUser() revel.Result {
+func (p Persona) CheckUser() revel.Result {
 	var ok bool
 	var exp, email string
 	p.UserEmail = nil
@@ -76,6 +80,7 @@ func (p *Persona) CheckUser() revel.Result {
 		return nil
 	}
 
+	revel.ERROR.Print("foo")
 	if expms, err := strconv.ParseInt(exp, 36, 64); err != nil {
 		revel.ERROR.Fatal("Failed to parse expiration: %s", err)
 	} else {
@@ -86,6 +91,10 @@ func (p *Persona) CheckUser() revel.Result {
 		}
 	}
 	p.UserEmail = &email
+	p.RenderArgs["persona"] = personaRA{
+		Email: email,
+	}
+	revel.WARN.Print(p.RenderArgs)
 	return nil
 }
 
