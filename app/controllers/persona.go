@@ -51,7 +51,7 @@ func (c Persona) Login(assertion string, redirect string) revel.Result {
 	}
 	if pr.Status == "okay" {
 		c.Session["persona/email"] = *pr.Email
-		c.Session["persona/exp"] = strconv.FormatInt(*pr.Expires, 36)
+		c.Session["persona/exp"] = strconv.FormatInt(time.Now().AddDate(0,0,1).Unix(), 36)
 		if redirect == "" {
 			return c.Render(pr)
 		}
@@ -69,7 +69,7 @@ func (c Persona) Logout(redirect string) revel.Result {
 	return c.RenderText("Logged out")
 }
 
-func (p Persona) CheckUser() revel.Result {
+func (p *Persona) CheckUser() revel.Result {
 	var ok bool
 	var exp, email string
 	p.UserEmail = nil
@@ -80,16 +80,18 @@ func (p Persona) CheckUser() revel.Result {
 		return nil
 	}
 
-	revel.ERROR.Print("foo")
-	if expms, err := strconv.ParseInt(exp, 36, 64); err != nil {
+	revel.ERROR.Print("logged in: ", p.Session["persona/email"])
+	if exp, err := strconv.ParseInt(exp, 36, 64); err != nil {
 		revel.ERROR.Fatal("Failed to parse expiration: %s", err)
 	} else {
-		expt := time.Unix(expms / 1000, (expms % 1000) * 1000000)
+		expt := time.Unix(exp, 0)
 		if expt.Before(time.Now()) {
+			revel.ERROR.Print("Session should be expired... why hasn't it been?")
 			p.Logout("")
 			return nil
 		}
 	}
+	revel.ERROR.Print("Still logged in")
 	p.UserEmail = &email
 	p.RenderArgs["persona"] = personaRA{
 		Email: email,
